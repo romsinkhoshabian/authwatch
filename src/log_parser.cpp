@@ -20,6 +20,10 @@ int count_lines(const std::string& path) {
 std::optional<LogEvent> parse_line(const std::string& line) {
     static const std::regex failed_re(
         R"(^(\w{3}\s+\d+ \d{2}:\d{2}:\d{2}) \S+ sshd\[\d+\]: Failed password for (invalid user )?(\S+) from (\S+) port (\d+))");
+    static const std::regex accepted_re(
+        R"(^(\w{3}\s+\d+ \d{2}:\d{2}:\d{2}) \S+ sshd\[\d+\]: Accepted password for (\S+) from (\S+) port (\d+))");
+    static const std::regex invalid_re(
+        R"(^(\w{3}\s+\d+ \d{2}:\d{2}:\d{2}) \S+ sshd\[\d+\]: Invalid user (\S+) from (\S+) port (\d+))");
 
     std::smatch m;
     if (std::regex_search(line, m, failed_re)) {
@@ -29,6 +33,26 @@ std::optional<LogEvent> parse_line(const std::string& line) {
         ev.user = m[3].str();
         ev.ip = m[4].str();
         ev.port = std::stoi(m[5].str());
+        return ev;
+    }
+
+    if (std::regex_search(line, m, accepted_re)) {
+        LogEvent ev;
+        ev.type = EventType::AcceptedPassword;
+        ev.timestamp = m[1].str();
+        ev.user = m[2].str();
+        ev.ip = m[3].str();
+        ev.port = std::stoi(m[4].str());
+        return ev;
+    }
+
+    if (std::regex_search(line, m, invalid_re)) {
+        LogEvent ev;
+        ev.type = EventType::InvalidUser;
+        ev.timestamp = m[1].str();
+        ev.user = m[2].str();
+        ev.ip = m[3].str();
+        ev.port = std::stoi(m[4].str());
         return ev;
     }
 
