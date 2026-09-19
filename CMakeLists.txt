@@ -11,3 +11,18 @@ target_compile_options(authwatch_core PUBLIC -Wall -Wextra -Wpedantic)
 
 add_executable(authwatch src/main.cpp)
 target_link_libraries(authwatch PRIVATE authwatch_core)
+
+# --- Unit tests (GoogleTest, fetched at configure time) ---
+include(FetchContent)
+FetchContent_Declare(
+    googletest
+    URL https://github.com/google/googletest/archive/refs/tags/v1.15.2.zip
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+FetchContent_MakeAvailable(googletest)
+
+enable_testing()
+add_executable(parser_tests tests/test_parser.cpp)
+target_link_libraries(parser_tests PRIVATE authwatch_core GTest::gtest_main)
+include(GoogleTest)
+gtest_discover_tests(parser_tests)
