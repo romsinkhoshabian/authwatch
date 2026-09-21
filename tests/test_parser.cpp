@@ -79,3 +79,21 @@ TEST(ParseLine, RejectsFailedPasswordMissingPort) {
         "from 203.0.113.5");
     EXPECT_FALSE(ev.has_value());
 }
+
+TEST(ParseTimestamp, ValidTimestamp) {
+    auto t = parse_timestamp("Sep 19 10:20:01", 2026);
+    ASSERT_TRUE(t.has_value());
+    EXPECT_EQ(*t, 1789813201);
+}
+
+TEST(ParseTimestamp, SpacePaddedDay) {
+    auto t = parse_timestamp("Sep  3 09:01:02", 2026);
+    ASSERT_TRUE(t.has_value());
+    EXPECT_EQ(*t, 1788426062);
+}
+
+TEST(ParseTimestamp, RejectsGarbage) {
+    EXPECT_FALSE(parse_timestamp("hello world", 2026).has_value());
+    EXPECT_FALSE(parse_timestamp("", 2026).has_value());
+    EXPECT_FALSE(parse_timestamp("Sep 19 25:00:00", 2026).has_value());
+}

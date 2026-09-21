@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_library(authwatch_core src/log_parser.cpp)
+add_library(authwatch_core src/log_parser.cpp src/detector.cpp)
 target_include_directories(authwatch_core PUBLIC src)
 target_compile_options(authwatch_core PUBLIC -Wall -Wextra -Wpedantic)
 
@@ -22,7 +22,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 
 enable_testing()
-add_executable(parser_tests tests/test_parser.cpp)
-target_link_libraries(parser_tests PRIVATE authwatch_core GTest::gtest_main)
+add_executable(authwatch_tests tests/test_parser.cpp tests/test_detector.cpp)
+target_link_libraries(authwatch_tests PRIVATE authwatch_core GTest::gtest_main)
 include(GoogleTest)
-gtest_discover_tests(parser_tests)
+gtest_discover_tests(authwatch_tests)

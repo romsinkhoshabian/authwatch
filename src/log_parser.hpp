@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ctime>
 #include <optional>
 #include <string>
 
@@ -24,3 +25,8 @@ int count_lines(const std::string& path);
 // Parses one sshd log line. Returns std::nullopt if the line is not
 // a recognized SSH authentication event.
 std::optional<LogEvent> parse_line(const std::string& line);
+
+// Converts a syslog timestamp such as "Sep 19 10:20:01" into seconds since
+// the Unix epoch (UTC). Syslog timestamps carry no year, so the caller
+// supplies it. Returns std::nullopt if the text is not a valid timestamp.
+std::optional<std::time_t> parse_timestamp(const std::string& text, int year);
