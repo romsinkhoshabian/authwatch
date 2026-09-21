@@ -39,3 +39,43 @@ TEST(ParseLine, IgnoresNonSshdLine) {
         "session opened for user root(uid=0) by (uid=0)");
     EXPECT_FALSE(ev.has_value());
 }
+
+TEST(ParseLine, AcceptedPassword) {
+    auto ev = parse_line(
+        "Sep 19 10:22:00 host sshd[2020]: Accepted password for alice "
+        "from 192.168.1.20 port 51234 ssh2");
+    ASSERT_TRUE(ev.has_value());
+    EXPECT_EQ(ev->type, EventType::AcceptedPassword);
+    EXPECT_EQ(ev->timestamp, "Sep 19 10:22:00");
+    EXPECT_EQ(ev->user, "alice");
+    EXPECT_EQ(ev->ip, "192.168.1.20");
+    EXPECT_EQ(ev->port, 51234);
+}
+
+TEST(ParseLine, InvalidUser) {
+    auto ev = parse_line(
+        "Sep 19 10:23:10 host sshd[2040]: Invalid user postgres from 198.51.100.23 port 40010");
+    ASSERT_TRUE(ev.has_value());
+    EXPECT_EQ(ev->type, EventType::InvalidUser);
+    EXPECT_EQ(ev->timestamp, "Sep 19 10:23:10");
+    EXPECT_EQ(ev->user, "postgres");
+    EXPECT_EQ(ev->ip, "198.51.100.23");
+    EXPECT_EQ(ev->port, 40010);
+}
+
+TEST(ParseLine, IgnoresEmptyLine) {
+    auto ev = parse_line("");
+    EXPECT_FALSE(ev.has_value());
+}
+
+TEST(ParseLine, IgnoresRandomText) {
+    auto ev = parse_line("hello world");
+    EXPECT_FALSE(ev.has_value());
+}
+
+TEST(ParseLine, RejectsFailedPasswordMissingPort) {
+    auto ev = parse_line(
+        "Sep 19 10:15:35 host sshd[1234]: Failed password for root "
+        "from 203.0.113.5");
+    EXPECT_FALSE(ev.has_value());
+}
